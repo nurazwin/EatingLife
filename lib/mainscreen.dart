@@ -3,6 +3,8 @@ import 'package:lab2_/book.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
+import 'book.dart';
+import 'bookdetails.dart';
 
 class MainScreen extends StatefulWidget {
   @override
@@ -10,7 +12,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  List booklist;
+  List bookList;
   double screenHeight, screenWidth;
   String titlecenter = "Loading Book...";
 
@@ -31,7 +33,7 @@ class _MainScreenState extends State<MainScreen> {
       ),
       body: Column(
         children: [
-          booklist == null
+          bookList == null
               ? Flexible(
                   child: Container(
                       child: Center(
@@ -46,7 +48,7 @@ class _MainScreenState extends State<MainScreen> {
                   child: GridView.count(
                   crossAxisCount: 2,
                   childAspectRatio: (screenWidth / screenHeight) / 0.8,
-                  children: List.generate(booklist.length, (index) {
+                  children: List.generate(bookList.length, (index) {
                     return Padding(
                         padding: EdgeInsets.all(1),
                         child: Card(
@@ -59,7 +61,7 @@ class _MainScreenState extends State<MainScreen> {
                                     width: screenWidth / 1.2,
                                     child: CachedNetworkImage(
                                       imageUrl:
-                                          "http://amongusss.com/EatingLife/images/bookimages/${booklist[index]['bookimage']}.jpg",
+                                          "http://amongusss.com/EatingLife/bookimages/${bookList[index]['bookimage']}.jpg",
                                       fit: BoxFit.cover,
                                       placeholder: (context, url) =>
                                           new CircularProgressIndicator(),
@@ -71,13 +73,13 @@ class _MainScreenState extends State<MainScreen> {
                                     )),
                                 SizedBox(height: 5),
                                 Text(
-                                  booklist[index]['booktitle'],
+                                  bookList[index]['booktitle'],
                                   style: TextStyle(
                                       fontSize: 16,
                                      fontWeight: FontWeight.bold),
                                 ),
-                                Text(booklist[index]['bookwritter']),
-                                Text(booklist[index]['booktype']),
+                                Text(bookList[index]['bookwritter']),
+                                Text(bookList[index]['booktype']),
                               ],
                             ),
                           ),
@@ -90,20 +92,20 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _loadBook() {
-    http.post("https://amongusss.com/EatingLife/php/load_book.php",
+    http.post("http://amongusss.com/EatingLife/php/load_book.php",
         body: {
           "type": "food",
         }).then((res) {
       print(res.body);
       if (res.body == "nodata") {
-        booklist = null;
+        bookList = null;
         setState(() {
           titlecenter = "No Book Found";
         });
       } else {
         setState(() {
           var jsondata = json.decode(res.body);
-          booklist = jsondata["book"];
+          bookList = jsondata["book"];
         });
       }
     }).catchError((err) {
@@ -112,13 +114,18 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   _loadBookDetail(int index) {
-    print(booklist[index]['booktitle']);
+    print(bookList[index]['booktitle']);
     Book book = new Book(
-        bookid: booklist[index]['bookid'],
-        booktitle: booklist[index]['booktitle'],
-        bookwritter: booklist[index]['bookwritter'],
-        booktype: booklist[index]['booktype'],
-        bookimage: booklist[index]['bookimage']);
+        bookid: bookList[index]['bookid'],
+        booktitle: bookList[index]['booktitle'],
+        bookwritter: bookList[index]['bookwritter'],
+        booktype: bookList[index]['booktype'],
+        bookimage: bookList[index]['bookimage']);
+
+
+        Navigator.push(context,
+        MaterialPageRoute(builder: (BuildContext context) => BookScreenDetail(book: book,)
+        ));
 
       
   }
