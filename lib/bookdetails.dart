@@ -1,6 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:lab2_/recipedetails.dart';
 import 'package:lab2_/user.dart';
+import 'package:progress_dialog/progress_dialog.dart';
 import 'book.dart';
+import 'food.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 
@@ -16,7 +21,15 @@ class BookScreenDetail extends StatefulWidget {
 
 class _BookScreenDetailState extends State<BookScreenDetail> {
   double screenHeight = 0.00, screenWidth = 0.00;
-  List recipeList;
+  List foodList;
+  String titlecenter = "Loading Books...";
+  GlobalKey<RefreshIndicatorState> refreshKey;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFoods();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,48 +39,127 @@ class _BookScreenDetailState extends State<BookScreenDetail> {
       appBar: AppBar(
         title: Text(widget.book.booktitle),
       ),
-      body: Container(
-          child: GridView.count(
-        crossAxisCount: 2,
-        childAspectRatio: (screenWidth / screenHeight) / 0.62,
-        children: List.generate(recipeList.length, (index) {
-          return Padding(
-              padding: EdgeInsets.all(2),
-              child: Card(
-                  child: InkWell(
-                onTap: () => _loadRecipeDetails(index),
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Container(
-                          height: screenHeight / 5,
-                          width: screenWidth / 1.2,
-                          child: CachedNetworkImage(
-                            imageUrl:
-                                "http://amongusss.com/EatingLife/bookimages/${widget.book.bookimage}.jpg",
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                new CircularProgressIndicator(),
-                            errorWidget: (context, url, error) => new Icon(
-                              Icons.broken_image,
-                              size: screenWidth / 2,
-                            ),
-                          )),
-                      SizedBox(height: 5),
-                      Text(
-                        recipeList[index]['recipename'],
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                ),
-              )));
-        }),
-      )),
+      body: Column(children: [
+        Container(
+            height: screenHeight / 4.8,
+            width: screenWidth / 0.3,
+            child: CachedNetworkImage(
+              imageUrl:
+                  "http://amongusss.com/EatingLife/bookimage/${widget.book.bookimage}.jpg",
+              fit: BoxFit.cover,
+              placeholder: (context, url) => new CircularProgressIndicator(),
+              errorWidget: (context, url, error) => new Icon(
+                Icons.broken_image,
+                size: screenWidth / 2,
+              ),
+            )),
+        foodList == null
+            ? Flexible(
+                child: Container(
+                    child: Center(
+                        child: Text(
+                titlecenter,
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black),
+              ))))
+            : Flexible(
+                child: RefreshIndicator(
+                    key: refreshKey,
+                    color: Colors.yellow,
+                    onRefresh: () async {
+                      _loadFoods();
+                    },
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      childAspectRatio: (screenWidth / screenHeight) / 0.62,
+                      children: List.generate(foodList.length, (index) {
+                        return Padding(
+                            padding: EdgeInsets.all(2),
+                            child: Card(
+                                child: InkWell(
+                              onTap: () => _loadFoodDetails(index),
+                              child: SingleChildScrollView(
+                                child: Column(
+                                  children: [
+                                    Container(
+                                        height: screenHeight / 5,
+                                        width: screenWidth / 1.2,
+                                        child: CachedNetworkImage(
+                                          imageUrl:
+                                              "http://amongusss.com/EatingLife/bookimage/foodimage/${foodList[index]['foodimage']}.jpg",
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) =>
+                                              new CircularProgressIndicator(),
+                                          errorWidget: (context, url, error) =>
+                                              new Icon(
+                                            Icons.broken_image,
+                                            size: screenWidth / 2,
+                                          ),
+                                        )),
+                                    SizedBox(height: 5),
+                                    Text(
+                                      foodList[index]['foodname'],
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )));
+                      }),
+                    )),
+              )
+      ]),
       // ),
     );
   }
 
-  _loadRecipeDetails(int index) {}
+  Future<void> _loadFoods() async {
+    ProgressDialog pr = new ProgressDialog(context,
+        type: ProgressDialogType.Normal, isDismissible: false);
+    pr.style(message: "Loading...");
+    await pr.show();
+    http.post("https://amongusss.com/EatingLife/php/load_food.php", body: {
+      "bookid": widget.book.bookid,
+    }).then((res) {
+      print(res.body);
+      if (res.body == "nodata") {
+        foodList = null;
+        setState(() {
+          titlecenter = "No Recipe Found";
+        });
+      } else {
+        setState(() {
+          var jsondata = json.decode(res.body);
+          foodList = jsondata["food"];
+        });
+      }
+    }).catchError((err) {
+      print(err);
+    });
+    await pr.hide();
+  }
+
+  _loadFoodDetails(int index) {
+    Food food = new Food(
+      foodid: foodList[index]['foodid'],
+        foodname: foodList[index]['foodname'],
+        foodimage: foodList[index]['foodimage'],
+        description: foodList[index]['description'],
+        price: foodList[index]['price'],
+        );
+
+        Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (BuildContext context) => RecipeScreenDetails(
+                  food: food,
+                  user: widget.user,
+                ))
+                
+                );
+  }
 }

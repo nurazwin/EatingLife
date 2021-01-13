@@ -61,7 +61,7 @@ class _MainScreenState extends State<MainScreen> {
                                     width: screenWidth / 1.2,
                                     child: CachedNetworkImage(
                                       imageUrl:
-                                          "http://amongusss.com/EatingLife/bookimages/${bookList[index]['bookimage']}.jpg",
+                                          "http://amongusss.com/EatingLife/bookimage/${bookList[index]['bookimage']}.jpg",
                                       fit: BoxFit.cover,
                                       placeholder: (context, url) =>
                                           new CircularProgressIndicator(),
