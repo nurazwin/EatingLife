@@ -2,6 +2,6 @@ class Food{
   String foodid, foodname, foodimage, description, price;
 
   Food(
-    {this.foodid, this.foodname, this.foodimage, this.description, this.price}
+    {this.foodid, this.foodname, this.foodimage, this.description, this.price, String bookid, String recipeid}
   );
 }

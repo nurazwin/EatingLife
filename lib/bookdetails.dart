@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:lab2_/recipedetails.dart';
 import 'package:lab2_/user.dart';
@@ -21,8 +20,9 @@ class BookScreenDetail extends StatefulWidget {
 
 class _BookScreenDetailState extends State<BookScreenDetail> {
   double screenHeight = 0.00, screenWidth = 0.00;
-  List foodList;
-  String titlecenter = "Loading Books...";
+  List foodlist;
+  String titlecenter = "Loading Food...";
+  String type = "Food";
   GlobalKey<RefreshIndicatorState> refreshKey;
 
   @override
@@ -53,7 +53,7 @@ class _BookScreenDetailState extends State<BookScreenDetail> {
                 size: screenWidth / 2,
               ),
             )),
-        foodList == null
+        foodlist == null
             ? Flexible(
                 child: Container(
                     child: Center(
@@ -74,7 +74,7 @@ class _BookScreenDetailState extends State<BookScreenDetail> {
                     child: GridView.count(
                       crossAxisCount: 2,
                       childAspectRatio: (screenWidth / screenHeight) / 0.62,
-                      children: List.generate(foodList.length, (index) {
+                      children: List.generate(foodlist.length, (index) {
                         return Padding(
                             padding: EdgeInsets.all(2),
                             child: Card(
@@ -88,7 +88,7 @@ class _BookScreenDetailState extends State<BookScreenDetail> {
                                         width: screenWidth / 1.2,
                                         child: CachedNetworkImage(
                                           imageUrl:
-                                              "http://amongusss.com/EatingLife/bookimage/foodimage/${foodList[index]['foodimage']}.jpg",
+                                              "http://amongusss.com/EatingLife/bookimage/foodimage/${foodlist[index]['foodimage']}.jpg",
                                           fit: BoxFit.cover,
                                           placeholder: (context, url) =>
                                               new CircularProgressIndicator(),
@@ -100,7 +100,7 @@ class _BookScreenDetailState extends State<BookScreenDetail> {
                                         )),
                                     SizedBox(height: 5),
                                     Text(
-                                      foodList[index]['foodname'],
+                                      foodlist[index]['foodname'],
                                       style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold),
@@ -127,14 +127,14 @@ class _BookScreenDetailState extends State<BookScreenDetail> {
     }).then((res) {
       print(res.body);
       if (res.body == "nodata") {
-        foodList = null;
+        foodlist = null;
         setState(() {
           titlecenter = "No Recipe Found";
         });
       } else {
         setState(() {
           var jsondata = json.decode(res.body);
-          foodList = jsondata["food"];
+          foodlist = jsondata["foods"];
         });
       }
     }).catchError((err) {
@@ -145,21 +145,19 @@ class _BookScreenDetailState extends State<BookScreenDetail> {
 
   _loadFoodDetails(int index) {
     Food food = new Food(
-      foodid: foodList[index]['foodid'],
-        foodname: foodList[index]['foodname'],
-        foodimage: foodList[index]['foodimage'],
-        description: foodList[index]['description'],
-        price: foodList[index]['price'],
-        );
+      foodid: foodlist[index]['foodid'],
+      foodname: foodlist[index]['foodname'],
+      foodimage: foodlist[index]['foodimage'],
+      description: foodlist[index]['description'],
+      price: foodlist[index]['price'],
+      bookid: widget.book.bookid
+    );
 
-        Navigator.push(
+    Navigator.push(
         context,
         MaterialPageRoute(
             builder: (BuildContext context) => RecipeScreenDetails(
                   food: food,
-                  user: widget.user,
-                ))
-                
-                );
+                )));
   }
 }
