@@ -29,6 +29,10 @@ dependencies:
   progress_dialog:
   cached_network_image: ^2.4.1
   flutter_cache_manager:
+  image_cropper: ^1.2.2
+  image_picker:
+  flutter_speed_dial: ^1.2.5
+  material_design_icons_flutter:
 
 
   # The following adds the Cupertino Icons font to your application.
